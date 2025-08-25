@@ -26,7 +26,30 @@ go.work.sum
 
 # env file
 .env
+.envrc
+*.pem
+*.key
+*.crt
+*.p12
+*.csr
 
 # Editor/IDE
-# .idea/
-# .vscode/
+.idea/
+.vscode/
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+/bin/
+/build/
+/dist/
+/out/
+
+# Logs & temp
+*.log
+logs/
+tmp/
+*.tmp
+*~
