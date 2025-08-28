@@ -7,6 +7,18 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 <body style="background-color:#121212;">
-   <h1 x-data="{ message: 'I ❤️ Alpine' }" x-text="message" style="color: turquoise;"></h1>
+    <h1 style="color: turquoise;"> Smart List </h1>
+    <div class="container">
+        <div class="catalog">
+        {{range .}}
+        <h3 style="color: white;">{{.CategoryName}} {{.CategoryIcon}}</h3>
+            <ul style="color: aliceblue;">
+                {{range .Items}}
+                <li>{{.Name}}</li>
+                {{end}}
+            </ul>
+        {{end}}
+        </div>
+    </div>
 </body>
 </html>
