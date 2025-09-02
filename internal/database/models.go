@@ -24,6 +24,27 @@ type Category struct {
 	Icon sql.NullString
 }
 
+type List struct {
+	ID         uuid.UUID
+	UserID     uuid.UUID
+	Name       string
+	Frequency  sql.NullString
+	TargetDate sql.NullTime
+	CreatedAt  sql.NullTime
+	UpdatedAt  sql.NullTime
+}
+
+type ListItem struct {
+	ID        int64
+	ListID    uuid.UUID
+	Name      string
+	Qty       sql.NullInt16
+	Unit      sql.NullString
+	Price     sql.NullInt16
+	CreatedAt sql.NullTime
+	UpdatedAt sql.NullTime
+}
+
 type User struct {
 	ID             uuid.UUID
 	CreatedAt      time.Time

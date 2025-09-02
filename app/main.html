@@ -3,22 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart List</title>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <title>Grocery Lists</title>
+    <link rel="stylesheet" href="main.css">
 </head>
-<body style="background-color:#121212;">
-    <h1 style="color: turquoise;"> Smart List </h1>
-    <div class="container">
-        <div class="catalog">
-        {{range .}}
-        <h3 style="color: white;">{{.CategoryName}} {{.CategoryIcon}}</h3>
-            <ul style="color: aliceblue;">
-                {{range .Items}}
-                <li>{{.Name}}</li>
-                {{end}}
-            </ul>
-        {{end}}
+<body>
+    <!-- Header -->
+    <header class="header">
+        <h1 class="app-title">Grocery Lists</h1>
+        <button class="burger-menu" id="burgerMenu">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </header>
+
+    <!-- Burger Menu Overlay -->
+    <div class="menu-overlay" id="menuOverlay">
+        <div class="menu-content">
+            <button class="menu-close" id="menuClose">&times;</button>
+            <nav class="menu-nav">
+                <button class="menu-item" id="catalogBtn">
+                    <span class="menu-icon">📦</span>
+                    Catalog
+                </button>
+                <button class="menu-item" id="settingsBtn">
+                    <span class="menu-icon">⚙️</span>
+                    Settings
+                </button>
+                <button class="menu-item" id="logoutBtn">
+                    <span class="menu-icon">🚪</span>
+                    Logout
+                </button>
+            </nav>
         </div>
     </div>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- User Lists -->
+        <div class="lists-container">
+            {{$currentList := ""}}
+            {{range .UserList}}
+                {{if ne .ListName $currentList}}
+                    {{if ne $currentList ""}}
+                        </div>
+                        
+                        <!-- Add Item Section -->
+                        <div class="add-item-section">
+                            <div class="add-item-input">
+                                <input type="text" placeholder="Add new item..." class="item-input">
+                                <button class="add-from-catalog-btn" onclick="openCatalog('{{$currentList}}')">
+                                    📦
+                                </button>
+                            </div>
+                            <button class="add-item-btn" onclick="addItem(this, '{{$currentList}}')">
+                                Add Item
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                    {{end}}
+                    {{$currentList = .ListName}}
+            <div class="list-card">
+                <div class="list-header" onclick="toggleList(this)">
+                    <input type="hidden" class="list-id" value="{{.ListID}}">
+                    <h2 class="list-name">{{.ListName}}</h2>
+                    <div class="list-meta">
+                        {{if .TargetDate}}
+                            <span class="target-date">📅 {{.TargetDate}}</span>
+                        {{end}}
+                        {{if .ListFreq}}
+                            <span class="list-freq">🔄 {{.ListFreq}}</span>
+                        {{end}}
+                    </div>
+                    <button class="expand-btn">
+                        <span class="expand-icon">▼</span>
+                    </button>
+                </div>
+                
+                <div class="list-items">
+                {{end}}
+                {{if eq .ListName $currentList}}
+                    <div class="list-item">
+                        <div class="item-info">
+                            <span class="item-name">{{.Name}}</span>
+                            <div class="item-details">
+                                {{if .Qty}}<span class="qty">Qty: {{.Qty}}</span>{{end}}
+                                {{if .Unit}}<span class="unit">{{.Unit}} units</span>{{end}}
+                                {{if .Price}}<span class="price">${{.Price}}</span>{{end}}
+                            </div>
+                            {{if .UpdatedAt}}<span class="updated-at">Updated: {{.UpdatedAt}}</span>{{end}}
+                        </div>
+                        <button class="remove-item-btn" onclick="removeItem(this)">
+                            <span>🗑️</span>
+                        </button>
+                    </div>
+                {{end}}
+            {{end}}
+            {{if ne $currentList ""}}
+                </div>
+                    
+                    <!-- Add Item Section -->
+                    <div class="add-item-section">
+                        <div class="add-item-input">
+                            <input type="text" placeholder="Add new item..." class="item-input">
+                            <button class="add-from-catalog-btn" onclick="openCatalogForList(this)">
+                                📦
+                            </button>
+                        </div>
+                        <button class="add-item-btn" onclick="addItem(this)">
+                            Add Item
+                        </button>
+                        <button class="save-list-btn" onclick="saveListFromButton(this)">
+                            💾 Save List
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {{end}}
+        </div>
+
+        <!-- Create New List Button -->
+        <button class="create-list-btn" onclick="createNewList()">
+            <span class="plus-icon">+</span>
+            Create New List
+        </button>
+    </main>
+
+    <!-- Catalog Modal -->
+    <div class="modal-overlay" id="catalogModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Catalog</h2>
+                <button class="modal-close" onclick="closeCatalog()">&times;</button>
+            </div>
+            
+            <div class="catalog-search">
+                <input type="text" placeholder="Search items..." class="search-input" id="catalogSearch">
+            </div>
+            
+            <div class="catalog-content">
+                {{range .Catalog}}
+                <div class="category-section">
+                    <div class="category-header" onclick="toggleCategory(this)">
+                        <h3 class="category-name">
+                            <span class="category-icon">{{.CategoryIcon}}</span>
+                            {{.CategoryName}}
+                        </h3>
+                        <span class="category-toggle">▼</span>
+                    </div>
+                    <div class="category-items">
+                        {{range .Items}}
+                        <button class="catalog-item" onclick="selectCatalogItem('{{.Name}}')">
+                            {{.Name}}
+                        </button>
+                        {{end}}
+                    </div>
+                </div>
+                {{end}}
+            </div>
+        </div>
+    </div>
+
+    <script src="main.js"></script>
 </body>
 </html>

@@ -65,6 +65,7 @@ func main() {
 	mux.HandleFunc("POST /register", apiConfig.HandleCreateUser)
 	mux.HandleFunc("POST /login", apiConfig.HandleLogin)
 	mux.Handle("GET /main", apiConfig.middlewareAuth(apiConfig.HandleAppMain))
+	mux.Handle("GET /logout", apiConfig.middlewareAuth(apiConfig.HandleLogout))
 
 	server.ListenAndServe()
 }

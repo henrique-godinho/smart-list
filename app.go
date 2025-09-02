@@ -10,47 +10,33 @@ import (
 
 func (cfg *apiConfig) HandleAppMain(w http.ResponseWriter, req *http.Request, userID uuid.UUID) {
 
-	type CatalogItems struct {
-		ID   int
-		Name string
+	type ResponseData struct {
+		Catalog  []Catalog
+		UserList []UserList
 	}
 
-	type Catalog struct {
-		CategoryID   int
-		CategoryName string
-		CategoryIcon string
-		Items        []CatalogItems
-	}
-
-	catalog, err := cfg.Db.GetCatalog(req.Context())
+	catalog, err := cfg.LoadCatalog(req)
 	if err != nil {
-		log.Fatal("failed to get catalog")
+		log.Fatal(err)
 	}
 
-	groups := make([]Catalog, 0)
-	var cur *Catalog
-
-	for _, r := range catalog {
-		if cur == nil || cur.CategoryID != int(r.CategoryID) {
-			groups = append(groups, Catalog{
-				CategoryID:   int(r.CategoryID),
-				CategoryName: r.CategoryName,
-				CategoryIcon: r.CategoryIcon.String,
-				Items:        make([]CatalogItems, 0, 8),
-			})
-			cur = &groups[len(groups)-1]
-		}
-		cur.Items = append(cur.Items, CatalogItems{
-			ID:   int(r.ID),
-			Name: r.Name,
-		})
+	userLists, err := cfg.LoadUserLists(req, userID)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "failed to load lists", err)
+		return
 	}
 
 	mainTmpl, err := template.ParseFiles("./app/main.html")
 	if err != nil {
-		log.Fatal("faile to parse template")
+		respondWithError(w, http.StatusInternalServerError, "failed to load tempalte", err)
+		return
 	}
 
-	mainTmpl.Execute(w, groups)
+	responseData := ResponseData{
+		Catalog:  catalog,
+		UserList: userLists,
+	}
+
+	mainTmpl.Execute(w, responseData)
 
 }
