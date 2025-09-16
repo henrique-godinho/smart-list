@@ -19,6 +19,7 @@ import (
 )
 
 type apiConfig struct {
+	Sql          *sql.DB
 	Db           *database.Queries
 	JWTKey       string
 	CookieSecure bool
@@ -48,6 +49,7 @@ func main() {
 	Origin := os.Getenv("APP_ORIGIN")
 
 	apiConfig := apiConfig{
+		Sql:          db,
 		Db:           database.New(db),
 		JWTKey:       JWTkey,
 		CookieSecure: CookieSecure,
@@ -66,6 +68,7 @@ func main() {
 	mux.HandleFunc("POST /login", apiConfig.HandleLogin)
 	mux.Handle("GET /main", apiConfig.middlewareAuth(apiConfig.HandleAppMain))
 	mux.Handle("GET /logout", apiConfig.middlewareAuth(apiConfig.HandleLogout))
+	mux.Handle("POST /api/lists/{list_id}", apiConfig.middlewareAuth(apiConfig.middlewareApi(apiConfig.HandleAddToList)))
 
 	server.ListenAndServe()
 }

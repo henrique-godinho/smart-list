@@ -8,6 +8,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 
 	"github.com/google/uuid"
 )
@@ -69,4 +70,101 @@ func (q *Queries) GetListsByUserId(ctx context.Context, userID uuid.UUID) ([]Get
 		return nil, err
 	}
 	return items, nil
+}
+
+const getUpdatedListById = `-- name: GetUpdatedListById :many
+SELECT li.id as item_id, li.list_id, li.name, li.qty, li.unit, li.price, li.updated_at, l.name as list_name, l.frequency, l.target_date, l.updated_at as list_updated_at
+from list_items li
+join list l on l.id = li.list_id
+where list_id = $1
+order by li.id
+`
+
+type GetUpdatedListByIdRow struct {
+	ItemID        int64
+	ListID        uuid.UUID
+	Name          string
+	Qty           sql.NullInt16
+	Unit          sql.NullString
+	Price         sql.NullInt16
+	UpdatedAt     sql.NullTime
+	ListName      string
+	Frequency     sql.NullString
+	TargetDate    sql.NullTime
+	ListUpdatedAt sql.NullTime
+}
+
+func (q *Queries) GetUpdatedListById(ctx context.Context, listID uuid.UUID) ([]GetUpdatedListByIdRow, error) {
+	rows, err := q.db.QueryContext(ctx, getUpdatedListById, listID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetUpdatedListByIdRow
+	for rows.Next() {
+		var i GetUpdatedListByIdRow
+		if err := rows.Scan(
+			&i.ItemID,
+			&i.ListID,
+			&i.Name,
+			&i.Qty,
+			&i.Unit,
+			&i.Price,
+			&i.UpdatedAt,
+			&i.ListName,
+			&i.Frequency,
+			&i.TargetDate,
+			&i.ListUpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const removeItemsFromUserList = `-- name: RemoveItemsFromUserList :exec
+DELETE FROM list_items li
+WHERE li.list_id = $1::uuid
+AND NOT EXISTS (
+SELECT 1
+FROM jsonb_to_recordset($2::jsonb) AS x(name text)
+WHERE lower(trim(x.name)) = lower(trim(li.name))
+)
+`
+
+type RemoveItemsFromUserListParams struct {
+	ListID uuid.UUID
+	Items  json.RawMessage
+}
+
+func (q *Queries) RemoveItemsFromUserList(ctx context.Context, arg RemoveItemsFromUserListParams) error {
+	_, err := q.db.ExecContext(ctx, removeItemsFromUserList, arg.ListID, arg.Items)
+	return err
+}
+
+const updateUserList = `-- name: UpdateUserList :exec
+INSERT INTO list_items (list_id, name, qty, updated_at)
+SELECT $1::uuid, x.name, x.qty, NOW()
+FROM jsonb_to_recordset($2::jsonb) AS x(name text, qty smallint)
+ON CONFLICT (list_id, name) DO UPDATE
+SET qty = EXCLUDED.qty,
+    name = EXCLUDED.name,
+  updated_at = NOW()
+`
+
+type UpdateUserListParams struct {
+	ListID uuid.UUID
+	Items  json.RawMessage
+}
+
+func (q *Queries) UpdateUserList(ctx context.Context, arg UpdateUserListParams) error {
+	_, err := q.db.ExecContext(ctx, updateUserList, arg.ListID, arg.Items)
+	return err
 }

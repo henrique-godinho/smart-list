@@ -30,3 +30,22 @@ func (cfg *apiConfig) middlewareAuth(handler authedHandler) http.HandlerFunc {
 		handler(w, req, userID)
 	}
 }
+
+func (cfg *apiConfig) middlewareApi(next authedHandler) authedHandler {
+	return func(w http.ResponseWriter, req *http.Request, userID uuid.UUID) {
+		err := auth.CheckOrigin(cfg.Origin, req)
+		if err != nil {
+			respondWithError(w, http.StatusForbidden, "invalid request", nil)
+			return
+		}
+
+		err = auth.EnforceMediaType("json", req)
+		if err != nil {
+			respondWithError(w, http.StatusUnsupportedMediaType, "invalid media type", nil)
+			return
+		}
+
+		next(w, req, userID)
+	}
+
+}
