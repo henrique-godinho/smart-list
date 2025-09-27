@@ -1,9 +1,22 @@
 -- name: GetListsByUserId :many
-SELECT li.*, l.name AS list_name, l.frequency, l.target_date, l.updated_at AS list_updated_at
-FROM list_items li
-JOIN list l ON li.list_id = l.id
+SELECT
+  l.id          AS list_id,
+  l.name       AS list_name,
+  l.frequency,
+  l.target_date,
+  l.updated_at  AS list_updated_at,
+  li.id         AS item_id,
+  li.name       AS item_name,
+  li.qty,
+  li.unit,
+  li.price,
+  li.created_at AS item_created_at,
+  li.updated_at AS item_updated_at
+FROM list l
+LEFT JOIN list_items li ON li.list_id = l.id
 WHERE l.user_id = $1
 ORDER BY l.updated_at DESC;
+
 
 -- name: UpdateUserList :exec
 INSERT INTO list_items (list_id, name, qty, updated_at)
@@ -29,3 +42,13 @@ from list_items li
 join list l on l.id = li.list_id
 where list_id = $1
 order by li.id;
+
+-- name: CreateNewList :one
+INSERT INtO list (user_id, name,  frequency, target_date)
+VALUES (
+  $1,
+  $2,
+  $3,
+  $4
+)
+RETURNING id, name, frequency, target_date;

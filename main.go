@@ -69,6 +69,7 @@ func main() {
 	mux.Handle("GET /main", apiConfig.middlewareAuth(apiConfig.HandleAppMain))
 	mux.Handle("GET /logout", apiConfig.middlewareAuth(apiConfig.HandleLogout))
 	mux.Handle("POST /api/lists/{list_id}", apiConfig.middlewareAuth(apiConfig.middlewareApi(apiConfig.HandleAddToList)))
+	mux.Handle("POST /api/lists/", apiConfig.middlewareAuth(apiConfig.middlewareApi(apiConfig.CreateNewList)))
 
 	server.ListenAndServe()
 }

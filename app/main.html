@@ -46,6 +46,65 @@
             {{range .UserList}}
                 {{if ne .ListName $currentList}}
                     {{if ne $currentList ""}}
+                            </div>
+                            
+                            <!-- Add Item Section -->
+                            <div class="add-item-section">
+                                <div class="add-item-input">
+                                    <input type="text" placeholder="Add new item..." class="item-input">
+                                    <button class="add-from-catalog-btn" onclick="openCatalogForList(this)">
+                                        📦
+                                    </button>
+                                </div>
+                                <button class="add-item-btn" onclick="addItem(this)">
+                                    Add Item
+                                </button>
+                                <button class="save-list-btn" onclick="saveListFromButton(this)">
+                                    💾 Save List
+                                </button>
+                            </div>
+                        </div>
+                    {{end}}
+                    {{$currentList = .ListName}}
+                    <div class="list-card">
+                        <div class="list-header" onclick="toggleList(this)">
+                            <input type="hidden" class="list-id" value="{{.ListID}}">
+                            <h2 class="list-name">{{.ListName}}</h2>
+                            <div class="list-meta">
+                                {{if .TargetDate}}
+                                    <span class="target-date">📅 {{.TargetDate}}</span>
+                                {{end}}
+                                {{if .ListFreq}}
+                                    <span class="list-freq">🔄 {{.ListFreq}}</span>
+                                {{end}}
+                            </div>
+                            <button class="expand-btn">
+                                <span class="expand-icon">▼</span>
+                            </button>
+                        </div>
+                        
+                        <div class="list-items">
+                {{end}}
+                {{if eq .ListName $currentList}}
+                    {{if .Name }}
+                            <div class="list-item" data-item-id="{{.ItemID}}">
+                                <div class="item-info">
+                                    <span class="item-name">{{.Name}}</span>
+                                    <div class="item-details">
+                                        <span class="qty">Qty: <input type="number" value="{{if .Qty}}{{.Qty}}{{else}}1{{end}}" min="1" class="qty-input" onchange="updateItemQty(this, '{{.ItemID}}', '{{.Name}}')"></span>
+                                        {{if .Unit}}<span class="unit">{{.Unit}} units</span>{{end}}
+                                        {{if .Price}}<span class="price">${{.Price}}</span>{{end}}
+                                    </div>
+                                    {{if .UpdatedAt}}<span class="updated-at">Updated: {{.UpdatedAt}}</span>{{end}}
+                                </div>
+                                <button class="remove-item-btn" onclick="removeItem(this)">
+                                    <span>🗑️</span>
+                                </button>
+                            </div>
+                    {{end}}
+                {{end}}
+            {{end}}
+            {{if ne $currentList ""}}
                         </div>
                         
                         <!-- Add Item Section -->
@@ -64,65 +123,6 @@
                             </button>
                         </div>
                     </div>
-                </div>
-                    {{end}}
-                    {{$currentList = .ListName}}
-            <div class="list-card">
-                <div class="list-header" onclick="toggleList(this)">
-                    <input type="hidden" class="list-id" value="{{.ListID}}">
-                    <h2 class="list-name">{{.ListName}}</h2>
-                    <div class="list-meta">
-                        {{if .TargetDate}}
-                            <span class="target-date">📅 {{.TargetDate}}</span>
-                        {{end}}
-                        {{if .ListFreq}}
-                            <span class="list-freq">🔄 {{.ListFreq}}</span>
-                        {{end}}
-                    </div>
-                    <button class="expand-btn">
-                        <span class="expand-icon">▼</span>
-                    </button>
-                </div>
-                
-                <div class="list-items">
-                {{end}}
-                {{if eq .ListName $currentList}}
-                    <div class="list-item" data-item-id="{{.ItemID}}">
-                        <div class="item-info">
-                            <span class="item-name">{{.Name}}</span>
-                            <div class="item-details">
-                                <span class="qty">Qty: <input type="number" value="{{if .Qty}}{{.Qty}}{{else}}1{{end}}" min="1" class="qty-input" onchange="updateItemQty(this, '{{.ItemID}}', '{{.Name}}')"></span>
-                                {{if .Unit}}<span class="unit">{{.Unit}} units</span>{{end}}
-                                {{if .Price}}<span class="price">${{.Price}}</span>{{end}}
-                            </div>
-                            {{if .UpdatedAt}}<span class="updated-at">Updated: {{.UpdatedAt}}</span>{{end}}
-                        </div>
-                        <button class="remove-item-btn" onclick="removeItem(this)">
-                            <span>🗑️</span>
-                        </button>
-                    </div>
-                {{end}}
-            {{end}}
-            {{if ne $currentList ""}}
-                </div>
-                    
-                    <!-- Add Item Section -->
-                    <div class="add-item-section">
-                        <div class="add-item-input">
-                            <input type="text" placeholder="Add new item..." class="item-input">
-                            <button class="add-from-catalog-btn" onclick="openCatalogForList(this)">
-                                📦
-                            </button>
-                        </div>
-                        <button class="add-item-btn" onclick="addItem(this)">
-                            Add Item
-                        </button>
-                        <button class="save-list-btn" onclick="saveListFromButton(this)">
-                            💾 Save List
-                        </button>
-                    </div>
-                </div>
-            </div>
             {{end}}
         </div>
 
@@ -167,6 +167,83 @@
             </div>
         </div>
     </div>
+
+    <!-- Create New List Modal -->
+    <div class="modal-overlay" id="createListModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create New List</h2>
+                <button class="modal-close" onclick="closeCreateListModal()">&times;</button>
+            </div>
+            
+            <div class="modal-body" style="padding: 1.5rem;">
+                <form onsubmit="event.preventDefault(); submitNewList();">
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="listNameInput" style="display: block; margin-bottom: 0.5rem; color: #40E0D0; font-weight: 500;">
+                            List Name *
+                        </label>
+                        <input 
+                            type="text" 
+                            id="listNameInput" 
+                            class="form-input" 
+                            placeholder="e.g. Weekly Groceries, Christmas Shopping..."
+                            required
+                            style="width: 100%; padding: 0.75rem; background-color: #333; border: 1px solid #444; border-radius: 8px; color: #40E0D0; font-size: 1rem;"
+                        >
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="listFrequencySelect" style="display: block; margin-bottom: 0.5rem; color: #40E0D0; font-weight: 500;">
+                            Frequency (Optional)
+                        </label>
+                        <select 
+                            id="listFrequencySelect" 
+                            class="form-input"
+                            style="width: 100%; padding: 0.75rem; background-color: #333; border: 1px solid #444; border-radius: 8px; color: #40E0D0; font-size: 1rem;"
+                        >
+                            <option value="">Select frequency...</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="bi-weekly">Bi-weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="quarterly">Quarterly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label for="listTargetDateInput" style="display: block; margin-bottom: 0.5rem; color: #40E0D0; font-weight: 500;">
+                            Target Date (Optional)
+                        </label>
+                        <input 
+                            type="date" 
+                            id="listTargetDateInput" 
+                            class="form-input"
+                            style="width: 100%; padding: 0.75rem; background-color: #333; border: 1px solid #444; border-radius: 8px; color: #40E0D0; font-size: 1rem;"
+                        >
+                    </div>
+                    
+                    <div class="form-actions" style="display: flex; gap: 0.75rem;">
+                        <button 
+                            type="button" 
+                            onclick="closeCreateListModal()"
+                            style="flex: 1; padding: 0.75rem; background-color: #666; border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: all 0.3s ease;"
+                        >
+                            Cancel
+                        </button>
+                        <button 
+                            type="submit" 
+                            id="submitNewListBtn"
+                            style="flex: 2; padding: 0.75rem; background-color: #40E0D0; border: none; border-radius: 8px; color: #121212; font-weight: 600; cursor: pointer; transition: all 0.3s ease;"
+                        >
+                            Create List
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
 
     <script src="main.js"></script>
 </body>

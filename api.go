@@ -1,8 +1,10 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/henrique-godinho/smart-list/internal/database"
@@ -87,5 +89,54 @@ func (cfg *apiConfig) HandleAddToList(w http.ResponseWriter, req *http.Request, 
 	}
 
 	respondWithJSON(w, http.StatusOK, updatedList)
+
+}
+
+func (cfg *apiConfig) CreateNewList(w http.ResponseWriter, req *http.Request, userID uuid.UUID) {
+
+	type NewList struct {
+		ID         uuid.UUID `json:"id"`
+		Name       string    `json:"name"`
+		Freq       string    `json:"frequency"`
+		TargetDate time.Time `json:"target_date"`
+	}
+
+	var newList NewList
+	decoder := json.NewDecoder(req.Body)
+	if err := decoder.Decode(&newList); err != nil {
+		respondWithError(w, http.StatusInternalServerError, "failed to decode new list payload", err)
+		return
+	}
+
+	frequency := sql.NullString{
+		String: newList.Freq,
+		Valid:  true,
+	}
+
+	targetDate := sql.NullTime{
+		Time:  newList.TargetDate,
+		Valid: true,
+	}
+
+	newListData, err := cfg.Db.CreateNewList(req.Context(), database.CreateNewListParams{
+		UserID:     userID,
+		Name:       newList.Name,
+		Frequency:  frequency,
+		TargetDate: targetDate,
+	})
+
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "failed to create new list", err)
+		return
+	}
+
+	newList = NewList{
+		ID:         newListData.ID,
+		Name:       newListData.Name,
+		Freq:       newListData.Frequency.String,
+		TargetDate: newList.TargetDate,
+	}
+
+	respondWithJSON(w, http.StatusOK, newList)
 
 }

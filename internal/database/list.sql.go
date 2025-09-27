@@ -13,27 +13,81 @@ import (
 	"github.com/google/uuid"
 )
 
+const createNewList = `-- name: CreateNewList :one
+INSERT INtO list (user_id, name,  frequency, target_date)
+VALUES (
+  $1,
+  $2,
+  $3,
+  $4
+)
+RETURNING id, name, frequency, target_date
+`
+
+type CreateNewListParams struct {
+	UserID     uuid.UUID
+	Name       string
+	Frequency  sql.NullString
+	TargetDate sql.NullTime
+}
+
+type CreateNewListRow struct {
+	ID         uuid.UUID
+	Name       string
+	Frequency  sql.NullString
+	TargetDate sql.NullTime
+}
+
+func (q *Queries) CreateNewList(ctx context.Context, arg CreateNewListParams) (CreateNewListRow, error) {
+	row := q.db.QueryRowContext(ctx, createNewList,
+		arg.UserID,
+		arg.Name,
+		arg.Frequency,
+		arg.TargetDate,
+	)
+	var i CreateNewListRow
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Frequency,
+		&i.TargetDate,
+	)
+	return i, err
+}
+
 const getListsByUserId = `-- name: GetListsByUserId :many
-SELECT li.id, li.list_id, li.name, li.qty, li.unit, li.price, li.created_at, li.updated_at, l.name AS list_name, l.frequency, l.target_date, l.updated_at AS list_updated_at
-FROM list_items li
-JOIN list l ON li.list_id = l.id
+SELECT
+  l.id          AS list_id,
+  l.name       AS list_name,
+  l.frequency,
+  l.target_date,
+  l.updated_at  AS list_updated_at,
+  li.id         AS item_id,
+  li.name       AS item_name,
+  li.qty,
+  li.unit,
+  li.price,
+  li.created_at AS item_created_at,
+  li.updated_at AS item_updated_at
+FROM list l
+LEFT JOIN list_items li ON li.list_id = l.id
 WHERE l.user_id = $1
 ORDER BY l.updated_at DESC
 `
 
 type GetListsByUserIdRow struct {
-	ID            int64
 	ListID        uuid.UUID
-	Name          string
-	Qty           sql.NullInt16
-	Unit          sql.NullString
-	Price         sql.NullInt16
-	CreatedAt     sql.NullTime
-	UpdatedAt     sql.NullTime
 	ListName      string
 	Frequency     sql.NullString
 	TargetDate    sql.NullTime
 	ListUpdatedAt sql.NullTime
+	ItemID        sql.NullInt64
+	ItemName      sql.NullString
+	Qty           sql.NullInt16
+	Unit          sql.NullString
+	Price         sql.NullInt16
+	ItemCreatedAt sql.NullTime
+	ItemUpdatedAt sql.NullTime
 }
 
 func (q *Queries) GetListsByUserId(ctx context.Context, userID uuid.UUID) ([]GetListsByUserIdRow, error) {
@@ -46,18 +100,18 @@ func (q *Queries) GetListsByUserId(ctx context.Context, userID uuid.UUID) ([]Get
 	for rows.Next() {
 		var i GetListsByUserIdRow
 		if err := rows.Scan(
-			&i.ID,
 			&i.ListID,
-			&i.Name,
-			&i.Qty,
-			&i.Unit,
-			&i.Price,
-			&i.CreatedAt,
-			&i.UpdatedAt,
 			&i.ListName,
 			&i.Frequency,
 			&i.TargetDate,
 			&i.ListUpdatedAt,
+			&i.ItemID,
+			&i.ItemName,
+			&i.Qty,
+			&i.Unit,
+			&i.Price,
+			&i.ItemCreatedAt,
+			&i.ItemUpdatedAt,
 		); err != nil {
 			return nil, err
 		}

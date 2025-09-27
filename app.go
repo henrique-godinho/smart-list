@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net/http"
@@ -37,6 +38,7 @@ func (cfg *apiConfig) HandleAppMain(w http.ResponseWriter, req *http.Request, us
 		UserList: userLists,
 	}
 
+	fmt.Println(userLists)
 	mainTmpl.Execute(w, responseData)
 
 }

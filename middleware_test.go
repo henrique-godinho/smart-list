@@ -32,6 +32,7 @@ func wrap(next authedHandler) http.HandlerFunc {
 	cfg := &apiConfig{
 		JWTKey:       testJWTKey,
 		CookieSecure: false,
+		Origin:       "http://website.com",
 	}
 	return cfg.middlewareAuth(next)
 }
@@ -127,5 +128,56 @@ func TestMiddleware_ValidJWT_PassesUserID(t *testing.T) {
 	}
 	if got != want {
 		t.Fatalf("userID: want %s, got %s", want, got)
+	}
+}
+
+func TestMiddleware_Api_Origin(t *testing.T) {
+	cfg := &apiConfig{
+		JWTKey: testJWTKey,
+	}
+	userID := uuid.New()
+	token := makeToken(t, userID, cfg.JWTKey, 2*time.Minute)
+	authandler := cfg.middlewareApi(func(w http.ResponseWriter, r *http.Request, userID uuid.UUID) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	h := wrap(authandler)
+
+	req := httptest.NewRequest("POST", "/api/lists", nil)
+	req.Header.Set("Origin", "http://website.com")
+	req.Header.Set("Content-Type", "application/json")
+	req.AddCookie(&http.Cookie{Name: "sl_auth", Value: token, Path: "/"})
+	rr := httptest.NewRecorder()
+
+	h.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("expected %d Forbidden, got %d", http.StatusForbidden, rr.Code)
+	}
+}
+
+func TestMiddleware_Api_MediaType(t *testing.T) {
+	cfg := &apiConfig{
+		JWTKey: testJWTKey,
+		Origin: "http:localhost:8888",
+	}
+	userID := uuid.New()
+	token := makeToken(t, userID, cfg.JWTKey, 2*time.Minute)
+	authandler := cfg.middlewareApi(func(w http.ResponseWriter, r *http.Request, userID uuid.UUID) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	h := wrap(authandler)
+
+	req := httptest.NewRequest("POST", "/api/lists", nil)
+	req.Header.Set("Origin", cfg.Origin)
+	req.Header.Set("Content-Type", "form")
+	req.AddCookie(&http.Cookie{Name: "sl_auth", Value: token, Path: "/"})
+	rr := httptest.NewRecorder()
+
+	h.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusUnsupportedMediaType {
+		t.Fatalf("expected %d Unsupported MediaType, got %d", http.StatusUnsupportedMediaType, rr.Code)
 	}
 }

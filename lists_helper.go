@@ -69,19 +69,18 @@ func (cfg *apiConfig) LoadUserLists(req *http.Request, userID uuid.UUID) ([]User
 	if err != nil {
 		return nil, err
 	}
-
 	lists := make([]UserList, 0)
 
 	for _, rows := range listRows {
 		lists = append(lists, UserList{
-			ItemID:        rows.ID,
+			ItemID:        rows.ItemID.Int64,
 			ListID:        rows.ListID,
-			Name:          rows.Name,
+			Name:          rows.ItemName.String,
 			Qty:           int(rows.Qty.Int16),
 			Unit:          rows.Unit.String,
 			Price:         int(rows.Price.Int16),
-			CreatedAt:     rows.CreatedAt.Time,
-			UpdatedAt:     rows.UpdatedAt.Time,
+			CreatedAt:     rows.ItemCreatedAt.Time,
+			UpdatedAt:     rows.ItemUpdatedAt.Time,
 			ListName:      rows.ListName,
 			ListFreq:      rows.Frequency.String,
 			TargetDate:    rows.TargetDate.Time,
