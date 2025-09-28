@@ -4,25 +4,191 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart List - Home</title>
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #121212;
+            color: #40E0D0;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .home-container {
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            background-color: #1e1e1e;
+            border-radius: 16px;
+            border: 1px solid #333;
+            padding: 3rem 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .app-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #40E0D0;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(64, 224, 208, 0.3);
+        }
+
+        .app-subtitle {
+            font-size: 1.1rem;
+            color: #888;
+            margin-bottom: 3rem;
+            font-weight: 400;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .auth-button {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .signup-btn {
+            background-color: #40E0D0;
+            color: #121212;
+        }
+
+        .signup-btn:hover {
+            background-color: #60F0E0;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(64, 224, 208, 0.4);
+        }
+
+        .login-btn {
+            background-color: transparent;
+            color: #40E0D0;
+            border: 2px solid #40E0D0;
+        }
+
+        .login-btn:hover {
+            background-color: #40E0D0;
+            color: #121212;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(64, 224, 208, 0.2);
+        }
+
+        .features {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #333;
+        }
+
+        .feature-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            text-align: left;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .feature-icon {
+            font-size: 1.2rem;
+            color: #40E0D0;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 480px) {
+            body {
+                padding: 1rem;
+            }
+            
+            .home-container {
+                padding: 2rem 1.5rem;
+            }
+            
+            .app-title {
+                font-size: 2rem;
+            }
+            
+            .app-subtitle {
+                font-size: 1rem;
+            }
+        }
+
+        /* Focus states for accessibility */
+        button:focus {
+            outline: 2px solid #40E0D0;
+            outline-offset: 2px;
+        }
+    </style>
 </head>
 <body>
-    <h4>This is the Home page</h4>
-    <div>
-        <button onclick="signup()"> Sign Up </button>
-    </div>
-    <div>
-        <button onclick="login()"> LogIn </button>
+    <div class="home-container">
+        <h1 class="app-title">Smart List</h1>
+        <p class="app-subtitle">Organize your grocery shopping with ease</p>
+        
+        <div class="button-container">
+            <button class="auth-button signup-btn" onclick="signup()">
+                Sign Up
+            </button>
+            <button class="auth-button login-btn" onclick="login()">
+                Log In
+            </button>
+        </div>
+        
+        <div class="features">
+            <div class="feature-list">
+                <div class="feature-item">
+                    <span class="feature-icon">📝</span>
+                    Create and manage multiple grocery lists
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">📦</span>
+                    Browse our comprehensive item catalog
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">💾</span>
+                    Save and sync your lists across devices
+                </div>
+                <div class="feature-item">
+                    <span class="feature-icon">📅</span>
+                    Set target dates and frequencies
+                </div>
+            </div>
+        </div>
     </div>
 
-<script>
-    function signup() {
-        window.location.href="/signup.html"
-    }
+    <script>
+        function signup() {
+            window.location.href="/signup.html"
+        }
 
-    function login() {
-        window.location.href="/login.html"
-    }
-</script>
-<script src="./index.js"></script>
+        function login() {
+            window.location.href="/login.html"
+        }
+    </script>
 </body>
 </html>
